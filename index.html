@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A5F">
+<title>유재진 가족 부동산 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F7F3EC;--bg-soft:#FAF7F2;--surface:#FFFFFF;--surface-2:#FDFBF7;
+  --navy:#1E3A5F;--navy-deep:#142849;--gold:#C9A961;--gold-deep:#A8893D;--gold-soft:#E8D9B0;
+  --sage:#7A8B6F;--burgundy:#7A2D3F;
+  --inc:#15803d;--inc-soft:#dcfce7;
+  --exp:#b91c1c;--exp-soft:#fee2e2;
+  --info:#1d4ed8;--info-soft:#dbeafe;
+  --warn:#b45309;--warn-soft:#fef3c7;
+  --text:#1F1F1F;--text-muted:#6B6B6B;--text-light:#9A9A9A;
+  --border:#E8E1D3;--border-soft:#F0EAE0;
+  --shadow-sm:0 1px 2px rgba(20,40,73,.04),0 1px 3px rgba(20,40,73,.06);
+  --shadow:0 4px 14px rgba(20,40,73,.06),0 2px 4px rgba(20,40,73,.04);
+  --shadow-lg:0 20px 50px -12px rgba(20,40,73,.18),0 8px 18px -8px rgba(20,40,73,.10);
+  --radius:14px;--radius-lg:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;letter-spacing:-.005em;-webkit-font-smoothing:antialiased;font-feature-settings:"ss03","ss04","tnum";padding-bottom:env(safe-area-inset-bottom)}
+.serif{font-family:'Noto Serif KR',serif;letter-spacing:-.02em}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(247,243,236,.85);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--border-soft);padding:14px 22px;padding-top:max(14px,env(safe-area-inset-top))}
+.topbar-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR';font-weight:700;font-size:18px;box-shadow:0 6px 14px -6px rgba(20,40,73,.5);flex-shrink:0}
+.brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.brand-title{font-family:'Noto Serif KR';font-weight:700;color:var(--navy);font-size:15px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-sub{font-size:10.5px;color:var(--gold-deep);font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.top-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.year-pill{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;background:rgba(201,169,97,.14);border:1px solid var(--gold-soft);font-size:12px;color:var(--gold-deep);font-weight:700;letter-spacing:.04em}
+.year-pill select{background:transparent;border:none;color:var(--gold-deep);font-weight:800;font-size:13px;font-family:inherit;cursor:pointer;outline:none}
+.icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s ease;font-size:17px}
+.icon-btn:hover{background:var(--navy);color:var(--gold);border-color:var(--navy);transform:translateY(-1px)}
+.sync-pill{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:12px;color:var(--text-muted);font-weight:500}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.sync-dot.dirty{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+
+.nav-tabs{max-width:1280px;margin:0 auto;display:flex;gap:4px;padding:10px 22px 0;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:10px 16px;border-radius:11px 11px 0 0;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--text-muted);white-space:nowrap;transition:all .2s;border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:6px}
+.nav-tab:hover{color:var(--navy)}
+.nav-tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+.nav-tab .ico{font-size:15px}
+
+.hero{max-width:1280px;margin:0 auto;padding:40px 22px 24px;background:radial-gradient(ellipse at top right,rgba(201,169,97,.12) 0%,transparent 60%),radial-gradient(ellipse at bottom left,rgba(30,58,95,.06) 0%,transparent 50%)}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:6px 14px;border-radius:999px;background:rgba(201,169,97,.14);color:var(--gold-deep);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;margin-bottom:18px}
+.hero-eyebrow::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.hero h1{font-family:'Noto Serif KR';font-weight:700;font-size:clamp(30px,4.8vw,46px);line-height:1.12;color:var(--navy);letter-spacing:-.025em}
+.hero h1 .accent{color:var(--gold-deep);font-style:italic;font-weight:400}
+.hero-lede{margin-top:14px;max-width:680px;font-size:clamp(14px,1.5vw,16px);color:var(--text-muted);font-weight:400;line-height:1.7}
+.hero-meta{margin-top:20px;display:flex;flex-wrap:wrap;gap:14px 26px;font-size:12px;color:var(--text-muted)}
+.hero-meta b{color:var(--navy);font-weight:700;letter-spacing:.02em}
+
+.kpis{max-width:1280px;margin:0 auto;padding:8px 22px 36px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{position:relative;background:var(--surface);border-radius:var(--radius-lg);padding:22px 22px;box-shadow:var(--shadow-sm);border:1px solid var(--border-soft);overflow:hidden;transition:all .25s ease}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.gongsi::before{background:linear-gradient(90deg,var(--navy),#3b82f6)}
+.kpi.gamjeong::before{background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+.kpi.lease::before{background:linear-gradient(90deg,var(--inc),#22c55e)}
+.kpi.loan::before{background:linear-gradient(90deg,var(--exp),#ef4444)}
+.kpi-label{font-size:11px;font-weight:700;color:var(--gold-deep);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-family:'Noto Serif KR';font-weight:700;font-size:clamp(20px,2.3vw,28px);color:var(--navy);letter-spacing:-.02em;line-height:1.15}
+.kpi-sub{margin-top:5px;font-size:11.5px;color:var(--text-muted)}
+.kpi.gamjeong .kpi-value{color:var(--gold-deep)}
+.kpi.lease .kpi-value{color:var(--inc)}
+.kpi.loan .kpi-value{color:var(--exp)}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+.section{max-width:1280px;margin:0 auto;padding:26px 22px}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+.section-title{font-family:'Noto Serif KR';font-weight:700;font-size:clamp(20px,2.6vw,26px);color:var(--navy);letter-spacing:-.02em}
+.section-title .badge{display:inline-block;margin-left:10px;padding:3px 10px;border-radius:6px;background:var(--navy);color:var(--gold);font-family:'Pretendard';font-size:12px;font-weight:700;letter-spacing:.05em;vertical-align:middle}
+.section-desc{font-size:13px;color:var(--text-muted);margin-top:4px;font-weight:400}
+
+.view{display:none}.view.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.panel{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border-soft);padding:24px 26px;box-shadow:var(--shadow-sm);margin-bottom:18px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-soft);gap:14px;flex-wrap:wrap}
+.panel-title{font-family:'Noto Serif KR';font-weight:700;font-size:17px;color:var(--navy);display:flex;align-items:center;gap:9px}
+.panel-title .ic{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--gold-soft) 0%,var(--gold) 100%);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+
+/* 가족별 카드 (대시보드) */
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.member-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--gold-soft)}
+.member-card::before{content:"";position:absolute;top:-30%;right:-20%;width:140px;height:140px;background:radial-gradient(circle,rgba(201,169,97,.16) 0%,transparent 70%);filter:blur(8px)}
+.member-card-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;position:relative}
+.member-name{font-family:'Noto Serif KR';font-weight:700;font-size:19px;color:var(--navy);letter-spacing:-.01em}
+.member-pct{font-size:11px;color:var(--gold-deep);font-weight:700;letter-spacing:.1em}
+.member-line{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;position:relative}
+.member-line span{color:var(--text-muted)}
+.member-line b{font-weight:700;font-variant-numeric:tabular-nums}
+.member-line.area b{color:var(--text)}
+.member-line.gongsi b{color:var(--navy)}
+.member-line.gamjeong b{color:var(--gold-deep)}
+.member-line.total{margin-top:8px;padding-top:10px;border-top:1px dashed var(--border)}
+.member-line.total b{color:var(--navy);font-family:'Noto Serif KR';font-size:14px}
+
+/* 필지 카드 */
+.parcel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.parcel-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:22px 24px;cursor:pointer;transition:all .25s;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.parcel-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--gold-soft)}
+.parcel-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--navy),var(--gold))}
+.parcel-card.solo::before{background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+.parcel-card.gift::before{background:linear-gradient(90deg,var(--warn),#fbbf24)}
+.parcel-card-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;gap:10px}
+.parcel-name{font-family:'Noto Serif KR';font-weight:700;font-size:18px;color:var(--navy);letter-spacing:-.01em}
+.parcel-use{font-size:11px;padding:3px 10px;border-radius:6px;background:var(--surface-2);color:var(--text-muted);font-weight:700;letter-spacing:.04em;border:1px solid var(--border);flex-shrink:0}
+.parcel-area{font-size:12.5px;color:var(--text-muted);margin-bottom:12px}
+.parcel-area b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.parcel-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dotted var(--border)}
+.parcel-row:last-child{border-bottom:none}
+.parcel-row span{color:var(--text-muted)}
+.parcel-row b{font-weight:600;font-variant-numeric:tabular-nums}
+.parcel-row.gongsi b{color:var(--navy)}
+.parcel-row.gamjeong b{color:var(--gold-deep)}
+.parcel-row.total{margin-top:6px;padding-top:10px;border-top:1px solid var(--border);font-weight:700}
+.parcel-row.total b{font-family:'Noto Serif KR';font-size:15px}
+.parcel-shares{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.parcel-shares-head{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:6px}
+.share-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-muted);padding:2px 0}
+.share-row b{color:var(--text);font-weight:600}
+
+/* 임대차/대출 테이블 */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-soft);box-shadow:var(--shadow-sm)}
+.data-table thead{background:var(--navy)}
+.data-table th{padding:12px 14px;color:var(--gold);font-size:11px;font-weight:700;letter-spacing:.1em;text-align:left;white-space:nowrap}
+.data-table td{padding:13px 14px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+.data-table tr{cursor:pointer;transition:background .12s}
+.data-table tr:hover{background:var(--surface-2)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table b{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.04em}
+.tag.lease-active{background:var(--inc-soft);color:var(--inc)}
+.tag.lease-expiring{background:var(--warn-soft);color:var(--warn)}
+.tag.loan{background:var(--exp-soft);color:var(--exp)}
+.tag.deposit{background:var(--info-soft);color:var(--info)}
+.tag.gift{background:var(--warn-soft);color:var(--warn)}
+
+.data-table-wrap{overflow-x:auto;border-radius:var(--radius)}
+
+@media(max-width:760px){
+  .data-table thead{display:none}
+  .data-table, .data-table tbody, .data-table tr, .data-table td{display:block;width:100%}
+  .data-table tr{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+  .data-table td{padding:4px 0;border:none;display:flex;justify-content:space-between;font-size:13px}
+  .data-table td::before{content:attr(data-label);font-weight:600;color:var(--text-muted);margin-right:10px;flex-shrink:0;font-size:11.5px}
+  .data-table td:first-child::before{display:none}
+  .data-table td:first-child{font-weight:700;color:var(--navy);font-family:'Noto Serif KR';font-size:15px;border-bottom:1px solid var(--border-soft);padding-bottom:8px;margin-bottom:6px;display:block}
+}
+
+/* 입력 페이지 */
+.input-methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:24px}
+.input-method-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:28px 26px;text-align:left;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);box-shadow:var(--shadow-sm);font-family:inherit;color:var(--text);position:relative;overflow:hidden}
+.input-method-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--gold-soft)}
+.input-method-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+.im-ico{font-size:42px;margin-bottom:14px}
+.input-method-card h3{font-family:'Noto Serif KR';font-size:20px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.input-method-card p{font-size:13px;color:var(--text-muted);line-height:1.65;margin-bottom:18px}
+.im-cta{font-size:13px;color:var(--navy);font-weight:700;letter-spacing:.02em}
+
+/* 설정 */
+.settings-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border-soft);padding:26px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.settings-card h3{font-family:'Noto Serif KR';font-size:18px;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:9px}
+.settings-card p{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:16px}
+.settings-actions{display:flex;flex-wrap:wrap;gap:10px}
+.sync-badge{display:inline-block;margin-left:8px;padding:3px 10px;border-radius:6px;font-family:'Pretendard';font-size:11px;font-weight:700;letter-spacing:.08em;vertical-align:middle}
+.sync-badge.off{background:rgba(122,45,63,.10);color:var(--burgundy)}
+.sync-badge.on{background:rgba(34,197,94,.12);color:#15803d}
+.sync-badge.syncing{background:rgba(245,158,11,.15);color:#b45309}
+.sync-steps{margin:6px 0 18px 18px;padding:0;font-size:13px;color:var(--text);line-height:1.85}
+.sync-steps li{margin-bottom:6px}
+.sync-steps li b{color:var(--navy)}
+.link{color:var(--gold-deep);font-weight:700;text-decoration:underline}
+.link:hover{color:var(--navy)}
+.sync-info{background:linear-gradient(135deg,var(--surface-2) 0%,#FAF5EA 100%);border:1px solid var(--gold-soft);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px}
+.sync-info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.sync-info-row span{color:var(--text-muted)}
+.sync-info-row b{color:var(--navy);font-weight:600}
+.mono{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:11.5px}
+.sync-code-box{margin-bottom:14px}
+.sync-code-box label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:7px}
+.sync-code-row{display:flex;gap:8px}
+.sync-code-row input{flex:1;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-soft);font-family:'SF Mono',Monaco,Consolas,monospace;font-size:11.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis}
+.sync-warn{font-size:11.5px;color:var(--burgundy);margin-top:8px;font-weight:500}
+
+/* 버튼 */
+.btn{padding:11px 22px;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.btn-primary:hover{background:var(--navy-deep);transform:translateY(-1px);box-shadow:0 6px 14px -6px rgba(20,40,73,.5)}
+.btn-ghost{background:transparent;color:var(--text-muted);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface);color:var(--text)}
+.btn-danger{background:transparent;color:var(--burgundy);border-color:var(--border)}
+.btn-danger:hover{background:rgba(122,45,63,.06)}
+.btn-add{background:linear-gradient(135deg,var(--gold-deep),var(--gold));color:#fff;border:none}
+.btn-add:hover{transform:translateY(-1px);box-shadow:0 6px 14px -6px rgba(168,137,61,.6)}
+
+.fab{position:fixed;bottom:24px;right:24px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--gold-deep),var(--gold));color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 12px 28px -8px rgba(168,137,61,.6);z-index:30;font-weight:700;transition:all .2s}
+.fab:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 32px -8px rgba(168,137,61,.7)}
+
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;z-index:100;background:rgba(20,40,73,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:18px;animation:fadeIn .2s}
+.modal-bg.active{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:640px;max-height:90vh;overflow:auto;box-shadow:var(--shadow-lg);animation:slideUp .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.modal-header{padding:22px 26px;border-bottom:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:flex-start;gap:14px;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-family:'Noto Serif KR';font-size:18px;font-weight:700;color:var(--navy);line-height:1.3}
+.modal-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.modal-close{width:34px;height:34px;border-radius:10px;border:none;background:var(--surface-2);cursor:pointer;font-size:18px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.modal-close:hover{background:var(--navy);color:var(--gold)}
+.modal-body{padding:22px 26px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:7px}
+.field input,.field textarea,.field select{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-soft);font-family:inherit;font-size:14px;color:var(--text);line-height:1.6;transition:all .2s}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px rgba(201,169,97,.18)}
+.field textarea{min-height:60px;resize:vertical}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:560px){.field-row,.field-row-3{grid-template-columns:1fr}}
+.modal-foot{padding:18px 26px;border-top:1px solid var(--border-soft);display:flex;gap:10px;justify-content:space-between;background:var(--surface-2);position:sticky;bottom:0}
+.modal-foot-left{display:flex;gap:10px}
+.modal-foot-right{display:flex;gap:10px}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:11px;font-size:13.5px;font-weight:500;letter-spacing:.01em;box-shadow:0 12px 28px -8px rgba(20,40,73,.5);z-index:200;opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.toast.ok{background:linear-gradient(135deg,#15803d,#166534)}
+.toast.err{background:linear-gradient(135deg,var(--burgundy),#5a1f2d)}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px}
+
+.footer{padding:30px 22px 100px;text-align:center}
+.footer-mark{font-family:'Noto Serif KR';color:var(--navy);font-weight:600;font-size:14px;letter-spacing:.02em}
+.footer-sub{font-size:11.5px;color:var(--text-light);margin-top:6px;letter-spacing:.06em}
+
+input[type="file"]{display:none}
+
+@media(max-width:600px){
+  .hero{padding-top:28px}
+  .section{padding:22px 16px}
+  .panel{padding:20px 18px}
+  .top-actions .sync-pill, .top-actions .year-pill{display:none}
+  .topbar{padding:12px 16px}
+  .nav-tabs{padding:10px 16px 0}
+  .nav-tab{padding:9px 12px;font-size:12.5px}
+  .brand-sub{display:none}
+  .modal{max-width:100%;border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh}
+  .modal-bg{align-items:flex-end;padding:0}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">유</div>
+      <div class="brand-text">
+        <div class="brand-title">유재진 가족 부동산</div>
+        <div class="brand-sub">Family Real Estate</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="year-pill">기준 <select id="yearSelect"></select></div>
+      <div class="sync-pill" id="syncPill"><span class="sync-dot" id="syncDot"></span><span id="syncText">자동 저장됨</span></div>
+      <button class="icon-btn" id="settingsBtn" title="설정·동기화" aria-label="설정">⚙</button>
+    </div>
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-view="dash"><span class="ico">📊</span>대시보드</button>
+    <button class="nav-tab" data-view="parcels"><span class="ico">🗺</span>필지별</button>
+    <button class="nav-tab" data-view="members"><span class="ico">👥</span>구성원별</button>
+    <button class="nav-tab" data-view="leases"><span class="ico">🏘</span>임대차</button>
+    <button class="nav-tab" data-view="loans"><span class="ico">💰</span>대출·보증금</button>
+    <button class="nav-tab" data-view="gift"><span class="ico">🎁</span>증여예정</button>
+    <button class="nav-tab" data-view="input"><span class="ico">➕</span>입력·업로드</button>
+    <button class="nav-tab" data-view="settings"><span class="ico">⚙</span>설정·동기화</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- DASHBOARD -->
+<section class="view active" id="view-dash">
+  <div class="hero">
+    <div class="hero-eyebrow"><span id="heroYear">2025년</span> 기준 가족 부동산 자산 통합</div>
+    <h1 class="serif">유재진 가족 <span class="accent">부동산</span></h1>
+    <p class="hero-lede">월산리 9개 필지 + 강남힐즈 아파트 — 5인 가족 통합 자산 현황. 공시가격·감정평가액·임대수입·대출 잔액까지 한눈에. 매년 공시 발표 후 단가만 갱신하면 전체 자동 계산.</p>
+    <div class="hero-meta">
+      <span>업데이트 <b id="updatedDate">2026-05-18</b></span>
+      <span>필지 <b id="totalParcels">9</b>개</span>
+      <span>구성원 <b id="totalMembers">5</b>명</span>
+      <span>임대계약 <b id="totalLeases">7</b>건</span>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi gongsi"><div class="kpi-label">총 공시가격</div><div class="kpi-value" id="kpiGongsi">-</div><div class="kpi-sub">토지 + 아파트</div></div>
+    <div class="kpi gamjeong"><div class="kpi-label">총 감정평가액</div><div class="kpi-value" id="kpiGamjeong">-</div><div class="kpi-sub">시장 시세 추정</div></div>
+    <div class="kpi lease"><div class="kpi-label">연 임대수입</div><div class="kpi-value" id="kpiLease">-</div><div class="kpi-sub">월 평균 <span id="kpiLeaseMonth">-</span></div></div>
+    <div class="kpi loan"><div class="kpi-label">대출 잔액</div><div class="kpi-value" id="kpiLoan">-</div><div class="kpi-sub">월 이자 <span id="kpiLoanMonth">-</span></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">가족별 자산 요약<span class="badge">FAMILY</span></h2><div class="section-desc">구성원별 소유면적·공시가격·감정평가액·비중</div></div></div>
+    <div class="member-grid" id="dashMemberGrid"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">필지별 평가 합계</h2><div class="section-desc">전체 면적 기준 공시·감정 가격</div></div></div>
+    <div class="panel"><div class="data-table-wrap"><table class="data-table" id="dashParcelTable">
+      <thead><tr><th>지번</th><th>용도</th><th style="text-align:right">면적(㎡)</th><th style="text-align:right">공시가격</th><th style="text-align:right">감정평가액</th></tr></thead>
+      <tbody></tbody>
+    </table></div></div>
+  </div>
+</section>
+
+<!-- PARCELS -->
+<section class="view" id="view-parcels">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">필지별 상세</h2><div class="section-desc">9개 필지 · 단가·지분·합계 자동 계산</div></div></div>
+    <div class="parcel-grid" id="parcelGrid"></div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">기타 자산 (아파트 등)</h2></div></div>
+    <div class="parcel-grid" id="otherAssetsGrid"></div>
+  </div>
+</section>
+
+<!-- MEMBERS -->
+<section class="view" id="view-members">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">구성원별 자산</h2><div class="section-desc">5명 가족 — 각자의 보유 필지 상세</div></div></div>
+    <div id="membersContainer"></div>
+  </div>
+</section>
+
+<!-- LEASES -->
+<section class="view" id="view-leases">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">임대차 현황</h2><div class="section-desc">7건 계약 · 보증금 · 월세 · 임대기간</div></div></div>
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+        <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">총 보증금</div><div style="font-family:'Noto Serif KR';font-size:22px;color:var(--navy);font-weight:700" id="leaseDeposit">-</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">월 임대료</div><div style="font-family:'Noto Serif KR';font-size:22px;color:var(--gold-deep);font-weight:700" id="leaseMonthly">-</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">연 임대수입</div><div style="font-family:'Noto Serif KR';font-size:22px;color:var(--inc);font-weight:700" id="leaseAnnual">-</div></div>
+      </div>
+      <div class="data-table-wrap"><table class="data-table" id="leaseTable">
+        <thead><tr><th>임대물건 / 임차인</th><th>보증금</th><th>월세</th><th>연수입</th><th>임대기간</th><th>연락처</th><th>상태</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOANS -->
+<section class="view" id="view-loans">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">대출·임대보증금 현황</h2><div class="section-desc">근저당·전세권·임차권 설정 + 임대보증금</div></div></div>
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+        <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">대출 잔액</div><div style="font-family:'Noto Serif KR';font-size:22px;color:var(--exp);font-weight:700" id="loanActual">-</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">임대보증금</div><div style="font-family:'Noto Serif KR';font-size:22px;color:var(--info);font-weight:700" id="loanDeposit">-</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">월 이자</div><div style="font-family:'Noto Serif KR';font-size:22px;color:var(--warn);font-weight:700" id="loanMonthly">-</div></div>
+      </div>
+      <div class="data-table-wrap"><table class="data-table" id="loanTable">
+        <thead><tr><th>구분 / 내용</th><th>채권최고액</th><th>실대출/보증금</th><th>이자율</th><th>만기일</th><th>월이자</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- GIFT -->
+<section class="view" id="view-gift">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">증여예정 토지 <span class="badge" style="background:var(--warn-soft);color:var(--warn)">유창노</span></h2><div class="section-desc">현재 소유자: 유창노 → 유재진 가족 증여 계획</div></div></div>
+    <div class="kpis" style="padding:0;margin-bottom:18px;grid-template-columns:repeat(2,1fr);max-width:none">
+      <div class="kpi gongsi"><div class="kpi-label">공시가격 합계</div><div class="kpi-value" id="giftGongsi">-</div></div>
+      <div class="kpi gamjeong"><div class="kpi-label">감정평가액 합계</div><div class="kpi-value" id="giftGamjeong">-</div></div>
+    </div>
+    <div class="parcel-grid" id="giftGrid"></div>
+  </div>
+</section>
+
+<!-- INPUT -->
+<section class="view" id="view-input">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">신규 입력·업로드</h2><div class="section-desc">3가지 방법 — 수동·엑셀·스캔사진</div></div></div>
+    <div class="input-methods">
+      <button class="input-method-card" id="imManual">
+        <div class="im-ico">✏️</div><h3>수동 입력</h3>
+        <p>새 필지·임대차·대출 항목을 하나씩 빠르게 입력. 모든 필드 직접 입력.</p>
+        <div class="im-cta">한 건 입력하기 →</div>
+      </button>
+      <button class="input-method-card" id="imExcel">
+        <div class="im-ico">📊</div><h3>엑셀 업로드</h3>
+        <p>새 단가 발표 후 엑셀 파일로 일괄 갱신. 컬럼 자동 매핑 + 미리보기 후 저장.</p>
+        <div class="im-cta">엑셀 파일 선택 →</div>
+      </button>
+      <button class="input-method-card" id="imScan">
+        <div class="im-ico">📷</div><h3>스캔 사진</h3>
+        <p>공시가격 통지서, 임대계약서, 등기부등본 등 사진을 띄워두고 직접 입력.</p>
+        <div class="im-cta">사진 업로드 →</div>
+      </button>
+    </div>
+    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+    <input type="file" id="scanFile" accept="image/*" capture="environment">
+
+    <!-- 어떤 항목? 선택 -->
+    <div id="manualTypePick" style="display:none">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title"><span class="ic">+</span>어떤 항목을 추가할까요?</div></div>
+        <div class="input-methods" style="margin-bottom:0">
+          <button class="input-method-card" data-add="parcel"><div class="im-ico">🗺</div><h3>필지 추가</h3><p>새로 취득한 토지를 등록. 면적·단가·지분 입력.</p></button>
+          <button class="input-method-card" data-add="lease"><div class="im-ico">🏘</div><h3>임대차 계약 추가</h3><p>신규 임대 계약 등록. 보증금·월세·기간·연락처.</p></button>
+          <button class="input-method-card" data-add="loan"><div class="im-ico">💰</div><h3>대출/보증금 추가</h3><p>신규 대출 또는 임대보증금 등록.</p></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="scanSection" style="display:none">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="ic">📷</span>스캔 사진 보기</div><button class="btn btn-ghost" id="btnScanClose">닫기</button></div>
+      <img id="scanImg" alt="스캔" style="max-width:100%;max-height:70vh;display:block;margin:0 auto;border-radius:10px">
+      <p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:13px">사진을 보면서 위 "수동 입력" 버튼으로 추가하세요</p>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="view" id="view-settings">
+  <div class="section">
+    <div class="section-head"><div><h2 class="section-title">설정 · 동기화 · 백업</h2><div class="section-desc">기기 간 자동 연동과 백업·복원</div></div></div>
+
+    <div class="settings-card" id="cloudSyncCard">
+      <h3>☁️ 자동 클라우드 동기화 <span id="syncStateBadge" class="sync-badge off">OFF</span></h3>
+      <p>한 기기에서 수정하면 <b>5초 이내</b>에 모든 기기에 자동 반영. 비공개 GitHub Gist 저장.</p>
+      <div id="syncStep1">
+        <ol class="sync-steps">
+          <li><b>GitHub Token 발급:</b> <a href="https://github.com/settings/tokens/new?scopes=gist&description=YJJ+RealEstate+Sync" target="_blank" rel="noopener" class="link">발급 페이지 열기</a> → 만료일 "No expiration" → <b>Generate token</b> → 복사 (<b>ghp_</b> 시작)</li>
+          <li>토큰 붙여넣고 "동기화 시작" → 비공개 Gist 자동 생성 + 동기화 시작</li>
+          <li>다른 기기에선 발급된 <b>동기화 코드</b>만 붙여넣으면 끝</li>
+        </ol>
+        <div class="field"><label>GitHub Personal Access Token</label><input type="password" id="ghToken" placeholder="ghp_..." autocomplete="off"></div>
+        <div class="field"><label>또는 동기화 코드</label><input type="text" id="ghSyncCode" placeholder="realestateSync:..." autocomplete="off"></div>
+        <div class="settings-actions"><button class="btn btn-primary" id="btnSyncStart">☁️ 동기화 시작</button></div>
+      </div>
+      <div id="syncStep2" style="display:none">
+        <div class="sync-info">
+          <div class="sync-info-row"><span>상태</span><b id="syncStatusText">연결됨</b></div>
+          <div class="sync-info-row"><span>마지막 동기화</span><b id="syncLastTime">방금 전</b></div>
+          <div class="sync-info-row"><span>Gist ID</span><b id="syncGistId" class="mono">-</b></div>
+        </div>
+        <div class="sync-code-box">
+          <label>동기화 코드</label>
+          <div class="sync-code-row"><input type="text" id="syncCodeOut" readonly><button class="btn btn-primary" id="btnCopyCode">복사</button></div>
+          <p class="sync-warn">⚠️ 본인 기기에만 입력 (토큰 포함)</p>
+        </div>
+        <div class="settings-actions">
+          <button class="btn btn-primary" id="btnSyncNow">↻ 지금 동기화</button>
+          <button class="btn btn-ghost" id="btnSyncStop">동기화 끄기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>📥 수동 백업·복원 (JSON)</h3>
+      <p>파일명: <b>유재진가족_부동산_데이터.json</b></p>
+      <div class="settings-actions">
+        <button class="btn btn-primary" id="btnExport">📥 데이터 내보내기</button>
+        <button class="btn btn-primary" id="btnImport">📤 데이터 가져오기</button>
+        <input type="file" id="fileImport" accept=".json,application/json">
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>🗂 데이터 초기화</h3>
+      <p>초기 부동산 데이터로 복원합니다.</p>
+      <div class="settings-actions"><button class="btn btn-danger" id="btnReset">⟳ 초기 데이터로 복원</button></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-mark">유재진 가족 부동산 관리 · 2026</div>
+  <div class="footer-sub">CRAFTED WITH PRECISION</div>
+</footer>
+
+<button class="fab" id="fabAdd" title="새 항목 추가" aria-label="새 항목 추가">+</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">편집</div>
+        <div class="modal-sub" id="modalSub"></div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="닫기">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <div class="modal-foot-left"><button class="btn btn-danger" id="btnDelete" style="display:none">삭제</button></div>
+      <div class="modal-foot-right">
+        <button class="btn btn-ghost" id="modalCancel">취소</button>
+        <button class="btn btn-primary" id="modalSave">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
