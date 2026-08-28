@@ -718,3 +718,46 @@ document.getElementById('btnCopyCode').addEventListener('click',async()=>{const 
 buildYearSelect();
 rerenderAll();
 if(!getSyncConfig().enabled) flashSync('saved');
+
+
+/* ===================== 100세 캐시플로우 연동 (cashflow-hub-api) ===================== */
+const CFHUB_API='https://cashflow-hub-api.yjjn2005.workers.dev';
+const CFHUB_PIN_KEY='cfhub_pin';
+function cfhubGetPin(){
+  let p=localStorage.getItem(CFHUB_PIN_KEY);
+  if(!p){
+    p=prompt('100세 캐시플로우 동기화 PIN을 입력하세요 (캐시플로우 앱과 동일)');
+    if(p&&p.trim().length>=4)localStorage.setItem(CFHUB_PIN_KEY,p.trim());
+    else return null;
+  }
+  return localStorage.getItem(CFHUB_PIN_KEY);
+}
+async function exportRentToCashflow(){
+  const ls=DATA.leases||[];
+  if(!ls.length){toast('임대차 계약이 없습니다','warn');return;}
+  // 월환산 합계: 월세가 있으면 월세, 연세 계약(월세 0)은 연액/12
+  const grossWon=ls.reduce((s,l)=>{
+    const m=+l.monthly||0, a=+l.annual||0;
+    return s+(m>0?m:a/12);
+  },0);
+  const grossMan=Math.round(grossWon/1e4);
+  const input=prompt(
+    '캐시플로우 [부동산임대] 탭에 반영할 월액(만원)을 입력하세요.\n\n'
+    +'· 전체 계약 월환산 합계: '+grossMan.toLocaleString('ko-KR')+'만원 ('+ls.length+'건, 연세 계약은 12분할)\n'
+    +'· 공동사업자 본인 몫만 반영하려면 금액을 수정하세요 (예: 300)',
+    grossMan);
+  if(input===null)return;
+  const amt=Math.round(parseFloat(input));
+  if(isNaN(amt)||amt<0){toast('금액이 올바르지 않습니다','warn');return;}
+  const pin=cfhubGetPin(); if(!pin)return;
+  try{
+    const res=await fetch(CFHUB_API+'/feed/'+encodeURIComponent(pin)+'/rent',{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({amt:amt,src:'yjj-realestate'})});
+    if(!res.ok)throw new Error(res.status);
+    toast('✅ 캐시플로우로 내보냈습니다 ('+amt.toLocaleString('ko-KR')+'만/월)','ok');
+  }catch(e){
+    toast('❌ 내보내기 실패 — 네트워크/PIN 확인','warn');
+    localStorage.removeItem(CFHUB_PIN_KEY);
+  }
+}
