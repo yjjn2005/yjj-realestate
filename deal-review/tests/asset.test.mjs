@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+test('deployed worker serves every local client asset and no API credentials',async()=>{const path=new URL('../worker/index.js',import.meta.url);const worker=(await import(pathToFileURL(path.pathname).href)).default;for(const route of ['/','/app.mjs','/model.mjs','/research.mjs','/style.css','/vendor/pdf.min.mjs','/vendor/pdf.worker.min.mjs']){const response=await worker.fetch(new Request('https://example.test'+route),{MOLIT_API_KEY:'TEST_SECRET_VALUE'},{});assert.equal(response.status,200,route);assert.equal((await response.text()).includes('TEST_SECRET_VALUE'),false);}assert.equal((await worker.fetch(new Request('https://example.test/api/status'),{},{})).status,200);assert.equal((await worker.fetch(new Request('https://example.test/not-found'),{},{})).status,404);});
+test('no duplicate static element IDs and main inputs exist',async()=>{const html=await readFile(new URL('../app/index.html',import.meta.url),'utf8');const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);assert.equal(ids.length,new Set(ids).size);for(const id of ['price','ask','sellerFloor','monthlyRent','landArea','printReport','viewContent'])assert.ok(ids.includes(id));});

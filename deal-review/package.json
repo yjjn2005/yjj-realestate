@@ -1,0 +1,1 @@
+{"name":"realty-deal-review","private":true,"type":"module","scripts":{"build":"node scripts/prepare.mjs && bash scripts/build.sh && node scripts/validate-artifact.mjs","test":"node scripts/prepare.mjs && node --test tests/*.test.mjs"}}

@@ -1,0 +1,13 @@
+import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';
+const root=new URL('../',import.meta.url);
+const files=[['/','app/index.html','text/html; charset=utf-8'],['/app.mjs','app/app.mjs','text/javascript; charset=utf-8'],['/model.mjs','app/model.mjs','text/javascript; charset=utf-8'],['/research.mjs','app/research.mjs','text/javascript; charset=utf-8'],['/style.css','app/style.css','text/css; charset=utf-8'],['/vendor/pdf.min.mjs','vendor/pdf.min.mjs','text/javascript; charset=utf-8'],['/vendor/pdf.worker.min.mjs','vendor/pdf.worker.min.mjs','text/javascript; charset=utf-8']];
+const assets={};for(const [path,file,type]of files)assets[path]={type,body:await readFile(new URL(file,root),'utf8')};
+let handler=await readFile(new URL('worker/handler.mjs',root),'utf8');handler=handler.replace(/^import .*?\n/,'');
+const research=await readFile(new URL('app/research.mjs',root),'utf8');
+const rateDecl=research.match(/export const RATE=([\s\S]*?);\nexport const SOURCES/)[1];
+const worker='const assets='+JSON.stringify(assets)+';\nconst RATE='+rateDecl+';\n'+handler+'\nexport default {async fetch(request,env={},ctx){const u=new URL(request.url);if(u.pathname.startsWith("/api/"))return apiFetch(request,env);if(request.method!=="GET"&&request.method!=="HEAD")return new Response("Method not allowed",{status:405});const path=u.pathname==="/index.html"?"/":u.pathname;const a=assets[path];if(!a)return new Response("Not found",{status:404});return new Response(request.method==="HEAD"?null:a.body,{headers:{"content-type":a.type,"cache-control":path==="/"?"no-cache":"public, max-age=300","x-content-type-options":"nosniff","referrer-policy":"strict-origin-when-cross-origin","content-security-policy":"default-src \'self\'; script-src \'self\'; worker-src \'self\' blob:; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; connect-src \'self\'; object-src \'none\'; base-uri \'self\'; form-action \'self\'"}});}};\n';
+await writeFile(new URL('worker/index.js',root),worker);
+await mkdir(new URL('site/vendor/',root),{recursive:true});
+for(const [path,file]of files)await cp(new URL(file,root),new URL('site/'+(path==='/'?'index.html':path.slice(1)),root));
+await cp(new URL('vendor/PDFJS-LICENSE',root),new URL('site/vendor/PDFJS-LICENSE',root));
+console.log('Prepared Cloudflare Worker and GitHub Pages assets.');

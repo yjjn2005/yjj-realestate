@@ -1,0 +1,26 @@
+name: Realty review Cloudflare deployment
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate and build
+        working-directory: deal-review
+        run: npm test && npm run build
+      - name: Deploy to your Cloudflare account
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: deal-review
+          wranglerVersion: '4'
+          command: deploy
+# Copy this template to .github/workflows/realty-review-cloudflare.yml only after
+# configuring the target Cloudflare account secrets. It does not deploy until run.
